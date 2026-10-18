@@ -35,8 +35,6 @@ it. Each backend has its own format of URL.
 
 =item L<SQLite backend|Yancy::Backend::Sqlite>
 
-=item L<DBIx::Class backend|Yancy::Backend::Dbic>
-
 =back
 
 =head1 Declaring a Schema

@@ -5,7 +5,7 @@ our $VERSION = '1.089';
 =head1 SYNOPSIS
 
     use Mojolicious::Lite;
-    plugin Yancy => backend => 'sqlite:myapp.db'; # mysql, pg, dbic...
+    plugin Yancy => backend => 'sqlite:myapp.db'; # mysql, pg...
     app->start;
 
 =head1 DESCRIPTION

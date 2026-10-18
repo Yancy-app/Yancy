@@ -38,8 +38,8 @@ folder.
 
 =head2 backend
 
-A backend to test. One or more of: C<memory>, C<sqlite>, C<mysql>, C<pg>,
-C<dbic>. Defaults to testing all backends, with the memory backend first.
+A backend to test. One or more of: C<memory>, C<sqlite>, C<mysql>, C<pg>.
+Defaults to testing all backends, with the memory backend first.
 
 =head2 test
 
@@ -60,7 +60,7 @@ L<Yancy>
 
 use Mojo::Base -strict;
 
-my @default_tests = qw( memory sqlite mysql pg dbic );
+my @default_tests = qw( memory sqlite mysql pg );
 
 my ( @tests, @files );
 my @opts = qw( -l -r );
@@ -129,16 +129,6 @@ my %tests = (
         env => {
             TEST_YANCY_BACKEND => 'pg:///test_yancy',
             TEST_ONLINE_PG => 'postgres:///test_backend',
-        },
-    },
-
-    dbic => {
-        setup => [
-            'rm -f /tmp/yancy_dbic.db',
-            'sqlite3 /tmp/yancy_dbic.db < t/schema/sqlite.sql',
-        ],
-        env => {
-            TEST_YANCY_BACKEND => 'dbic://Local::Schema/dbi:SQLite:/tmp/yancy_dbic.db',
         },
     },
 );

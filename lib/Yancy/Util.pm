@@ -78,7 +78,6 @@ our %BACKEND_CLASSES = (
     'Mojo::Pg' => 'pg',
     'Mojo::mysql' => 'mysql',
     'Mojo::SQLite' => 'sqlite',
-    'DBIx::Class::Schema' => 'dbic',
 );
 
 # Aliases allow the user to specify the same string as they pass to

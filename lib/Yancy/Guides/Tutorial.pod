@@ -48,16 +48,6 @@ This is a good option if you want to try Yancy out.
     # SQLite: A Mojo::SQLite object
     plugin Yancy => backend => Mojo::SQLite->new( 'sqlite::temp:' );
 
-=head3 DBIx::Class
-
-If you have a L<DBIx::Class> schema, Yancy can use it to edit the content.
-
-    # DBIx::Class: A connection string
-    plugin Yancy => backend => 'dbic://My::Schema/dbi:SQLite:test.db';
-
-    # DBIx::Class: A DBIx::Class::Schema object
-    plugin Yancy => backend => My::Schema->connect( 'dbi:SQLite:test.db' );
-
 =head2 Content Tools
 
 =head3 Schema Information and Validation

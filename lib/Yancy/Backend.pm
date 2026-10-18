@@ -49,8 +49,6 @@ compatibility, but will not perform requests concurrently.
 
 =item * L<Yancy::Backend::Sqlite> - SQLite backend
 
-=item * L<Yancy::Backend::Dbic> - L<DBIx::Class> backend
-
 =back
 
 Other backends are available on CPAN.
