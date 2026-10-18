@@ -38,14 +38,15 @@ export type YancyIframeMessage = {
   name: string;
   location: string;
 };
+export type YancyBlock = {
+  block_id?: number;
+  name: string;
+  path: string;
+  content: string;
+};
 export type YancyInputMessage = YancyIframeMessage & {
   name: "input";
-  block: {
-    block_id?: number;
-    name: string;
-    path: string;
-    content: string;
-  };
+  block: YancyBlock;
 };
 export type YancyEditMessage = YancyIframeMessage & {
   name: "edit";
@@ -61,4 +62,8 @@ export type YancyCommand = string | [string, ...any];
 export type YancyCommandMessage = YancyIframeMessage & {
   name: "command";
   command: YancyCommand | YancyCommand[];
+};
+export type YancyUpdateMessage = YancyIframeMessage & {
+  name: "update";
+  block?: YancyBlock;
 };

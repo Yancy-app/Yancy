@@ -102,6 +102,26 @@ test.describe("content editor", () => {
       await expect(newPage.getByText(blurb)).toContainText(newText);
       await newPage.close();
     });
+
+    test("can reload to same place", async ({ page, browser }) => {
+      await page.reload();
+
+      const editor = new ContentEditor(page);
+      const blurb = /editable about us blurb/;
+      const newText = "And I reloaded it.";
+      const el = editor.websiteDocument.getByText(blurb);
+      await el.click();
+      const oldText: string = (await el.textContent()) ?? "";
+      expect(oldText).toBeTruthy();
+      await el.fill(oldText + " " + newText);
+      await editor.waitForSave();
+
+      const newPage = await browser.newPage();
+      await newPage.goto("/");
+      await expect(newPage.getByText(blurb)).toContainText(oldText);
+      await expect(newPage.getByText(blurb)).toContainText(newText);
+      await newPage.close();
+    });
   });
 
   test.describe("about meet space (long user content)", () => {

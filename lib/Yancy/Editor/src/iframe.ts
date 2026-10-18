@@ -1,5 +1,5 @@
 import { Editor } from "@tiptap/core";
-import { YancyCommandMessage } from "./types.js";
+import { YancyCommandMessage, YancyUpdateMessage } from "./types.js";
 import ContentField from "./content-field.svelte";
 import { mount } from "svelte";
 import "./iframe.css";
@@ -30,6 +30,12 @@ type YancyEditorMessage = {
  * A map of block name to the editor instances for that block.
  */
 let blockEditors: Map<string, Editor> = new Map();
+
+/**
+ * A map of block name to the HTMLElement for that block
+ */
+let blockElements: Map<string, HTMLElement> = new Map();
+
 /**
  * The name of the block that is currently focused (or, strictly, whose
  * editor has focus somewhere inside.)
@@ -46,7 +52,9 @@ function getFocusedEditor(): Editor {
 function startEditor(block: HTMLElement) {
   const blockId = block.getAttribute("block_id");
   const blockName = block.getAttribute("name");
+  blockElements.set(blockName, block);
 
+  console.log("Starting editor in ", blockName, "(", blockId ?? "new", ")");
   // Get the content for the editor
   const content = block.innerHTML;
   // Clear out the existing content so the editor can replace it
@@ -57,12 +65,15 @@ function startEditor(block: HTMLElement) {
       value: content,
       detachToolbar: true,
       oninput(newContent) {
+        const block = blockElements.get(blockName);
+        const blockId = block.getAttribute("block_id");
         const blockData = {
-          block_id: blockId,
+          ...(blockId ? { block_id: blockId } : {}),
           name: blockName,
           path: window.location.pathname,
           content: newContent,
         };
+        console.log("sending block to editor", blockData);
         Yancy.editorPort.postMessage({
           name: "input",
           block: blockData,
@@ -75,7 +86,10 @@ function startEditor(block: HTMLElement) {
 function handleBodyClick(e: PointerEvent) {
   const el = e.target as HTMLElement;
   const block = el.closest("y-block") as HTMLElement;
-  focusedBlock = block ? block.getAttribute("name") : "";
+  if (block) {
+    focusedBlock = block.getAttribute("name");
+    console.log("focusing on block", focusedBlock);
+  }
 }
 
 function enableEditing() {
@@ -107,6 +121,18 @@ function handleEvent(e: MessageEvent<YancyEditorMessage>) {
       chain = chain[method](...args);
     }
     chain.run();
+  } else if (e.data.name === "update") {
+    const updateEvent = e.data as YancyUpdateMessage;
+    if (updateEvent.block && updateEvent.block.block_id) {
+      const editor = getFocusedEditor();
+      console.log(
+        "Updating block ID",
+        focusedBlock,
+        updateEvent.block.block_id,
+      );
+      const block = blockElements.get(focusedBlock);
+      block.setAttribute("block_id", updateEvent.block.block_id.toString());
+    }
   }
 }
 

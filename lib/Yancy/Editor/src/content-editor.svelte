@@ -13,11 +13,11 @@
   }: { src: string; onNavigate: (newLocation: string) => void } = $props();
   let channel = new MessageChannel();
   let saving: boolean = $state(false);
-  let blockId: string | undefined = undefined;
   const saveBlock = async (msg: YancyInputMessage) => {
     console.log("saving block", msg);
     let method = "POST",
-      endpoint = "/yancy/api/blocks";
+      endpoint = "/yancy/api/blocks",
+      blockId = msg.block.block_id;
     if (blockId) {
       endpoint += "/" + blockId;
       method = "PUT";
@@ -29,7 +29,8 @@
     });
     if (!blockId) {
       const block = await res.json();
-      blockId = block.block_id;
+      // Send the new block data back down the pipe
+      channel.port1.postMessage({ name: "update", block });
     }
     saving = false;
   };
@@ -68,9 +69,7 @@
     // can not get it.
     if (e.target instanceof HTMLIFrameElement && e.target.contentWindow) {
       const origin = new URL(e.target.src, window.location.href).origin;
-      e.target.contentWindow.postMessage("Yancy.init", origin, [
-        channel.port2,
-      ]);
+      e.target.contentWindow.postMessage("Yancy.init", origin, [channel.port2]);
     }
   };
 

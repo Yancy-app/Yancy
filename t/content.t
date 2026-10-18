@@ -297,12 +297,13 @@ subtest 'blocks' => sub {
     };
 
     subtest 'block content can be overridden' => sub {
-        $schema->create({
+        my $block_id = $schema->create({
             path => '/index',
             name => 'block_name',
             content => 'Overridden block content',
         });
         $t->get_ok('/index')->status_is(200)->content_like(qr{\s*<y-block[^>]+>\s*Overridden block content\s*</y-block>});
+        $t->attr_is('y-block', block_id => $block_id);
     };
 };
 
