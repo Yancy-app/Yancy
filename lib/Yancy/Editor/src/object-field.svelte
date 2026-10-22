@@ -27,9 +27,9 @@
   let columns = $derived.by(() => {
     const columns: Column[] = [];
     // XXX: This is duplicated, so create a wrapper object instead
-    if (schema.properties) {
+    if (schema?.properties) {
       for (const [field, fieldSchema] of Object.entries(schema.properties)) {
-        if (typeof fieldSchema !== "object") {
+        if (!fieldSchema || typeof fieldSchema !== "object") {
           continue;
         }
         if (!fieldSchema.type || fieldSchema["x-hidden"]) {

@@ -3,8 +3,8 @@
   import { marked } from "marked";
   import DatabaseTable from "./database-table.svelte";
   import { tick } from "svelte";
-  import ObjectField from "./object-field.svelte";
   import { Dialog, Portal } from "@skeletonlabs/skeleton-svelte";
+  import ItemForm from "./item-form.svelte";
 
   let {
     src,
@@ -17,8 +17,8 @@
     query: YancyListQuery;
     onchange?: (schema: string, item: { [key: string]: any }) => void;
   } = $props();
+
   const apiUrl = src + "/api";
-  const storageUrl = src + "/storage";
   const websiteUrl = src + "/website";
 
   class DataSchema {
@@ -65,17 +65,6 @@
 
   // The row we are currently editing, unchanged
   let editRow: any = $state();
-  // The row we are currently editing, with changes
-  let changedRow: any = $state();
-
-  // Errors by field
-  let fieldErrors: any = $state({});
-  // Errors not attached to any field
-  let objectErrors: any = $state([]);
-
-  let hasError = $derived(
-    Object.keys(fieldErrors).length > 0 || objectErrors.length > 0,
-  );
 
   function addRow() {
     openFormForRow({});
@@ -89,7 +78,6 @@
       dialog.showModal();
     }
     editRow = row;
-    changedRow = JSON.parse(JSON.stringify(editRow));
 
     // Wait for the form to render
     await tick();
@@ -113,74 +101,6 @@
     }
   }
 
-  async function saveRow(e: Event) {
-    // Since we're doing this as a form submit handler, we cannot perform the
-    // default action of actually submitting the form to the backend.
-    // I tried using <form method="dialog">, but that seemed to always close
-    // the dialog after the form submission...
-    e.preventDefault();
-
-    const row = JSON.parse(JSON.stringify(changedRow));
-    fieldErrors = {};
-    objectErrors = [];
-
-    let url = apiUrl + "/" + schema;
-    // If some ID fields are not read-only, we need to use the old value in the
-    // URL, and the new value in the form body.
-    if (dataSchema.idFields.every((k) => editRow[k])) {
-      url += "/" + dataSchema.idFields.map((k) => editRow[k]).join("/");
-    }
-
-    // Remove all read-only fields, since we can't set them
-    for (const [key, schema] of Object.entries(
-      dataSchema.schema?.properties || {},
-    )) {
-      if (typeof schema === "object" && schema.readOnly) {
-        delete row[key];
-      }
-    }
-
-    const res = await fetch(url, {
-      method: "POST",
-      body: JSON.stringify(row),
-    });
-    if (!res.ok) {
-      // Build the error structure so we can show errors next to the fields
-      const error = await res.json();
-      console.error(error);
-      if (error.errors && Array.isArray(error.errors)) {
-        for (const err of error.errors) {
-          if (!err.path || typeof err.path !== "string" || err.path === "/") {
-            // Not a field error, so add it to the generic pile
-            objectErrors.push(err.message);
-            continue;
-          }
-          if (typeof err.path === "string") {
-            const pathParts = err.path.split("/").slice(1);
-            let fieldErr = fieldErrors;
-            for (const part of pathParts) {
-              fieldErr[part] ??= {};
-              fieldErr = fieldErr[part];
-            }
-            fieldErr.$errors ??= [];
-            fieldErr.$errors.push(err);
-          }
-        }
-      }
-      return;
-    }
-
-    // Refresh page
-    if (dataTable) {
-      dataTable.refresh();
-    }
-    if (onchange) {
-      // FIXME: 201 Created responses should give us the whole set of ID fields as some kind of JSON
-      onchange(schema, changedRow);
-    }
-    closeDialog();
-  }
-
   let dataTable: DatabaseTable | undefined = $state();
 
   /**
@@ -190,7 +110,6 @@
     // This is the not-gentle "close"
     console.log("closeDialog");
     editRow = undefined;
-    changedRow = undefined;
   }
 
   /**
@@ -201,6 +120,15 @@
     // This is the gentle "request close"
     console.log("cancelDialog");
     // XXX: Warn user before doing this
+    closeDialog();
+  }
+
+  function onsave(item: any) {
+    // Refresh page
+    if (dataTable) {
+      dataTable.refresh();
+    }
+    onchange?.(schema, item);
     closeDialog();
   }
 
@@ -284,39 +212,13 @@
                   >Edit Item</Dialog.Title
                 >
               </header>
-              <form
-                id="edit-form"
-                aria-labelledby="edit-item-heading"
-                onsubmit={saveRow}
-              >
-                {#if hasError}
-                  <div role="alert" aria-describedby="error-description">
-                    <span id="error-description">Error</span>
-                    {#if objectErrors.length > 0}
-                      <ul>
-                        {#each objectErrors as error}
-                          <li>{error}</li>
-                        {/each}
-                      </ul>
-                    {/if}
-                  </div>
-                {/if}
-                <ObjectField
-                  storage={storageUrl}
-                  schema={dataSchema.schema}
-                  value={changedRow}
-                  errors={fieldErrors}
-                  onchange={(newValue) => {
-                    changedRow = newValue;
-                  }}
-                />
-                <button class="btn preset-filled-primary-500">Save</button>
-                <button
-                  type="button"
-                  onclick={cancelDialog}
-                  class="btn preset-outlined-secondary-500">Cancel</button
-                >
-              </form>
+              <ItemForm
+                {src}
+                {schema}
+                item={editRow}
+                oncancel={cancelDialog}
+                {onsave}
+              />
             </Dialog.Content>
           </Dialog.Positioner>
         </Portal>
