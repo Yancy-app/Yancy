@@ -107,7 +107,7 @@ sub build_backend() {
 
 sub build_app($backend) {
     my $app = Mojolicious->new;
-    $app->plugin( 'Yancy::Plugin::Content' => backend => $backend );
+    $app->plugin( 'Yancy::Plugin::Content' => backend => $backend, templates => [qw( default new_template )] );
     return Test::Mojo->new( $app );
 }
 
@@ -131,7 +131,7 @@ subtest 'pages' => sub {
     # Get the "before_server_start" hook to run.
     $app->server(Mojo::Server->new);
 
-    my $model = Yancy::Content->new( app => $app, backend => $backend );
+    my $model = Yancy::Content->new( app => $app, backend => $backend, templates => [qw( default new_template )] );
     my $schema = $model->schema('pages');
 
     subtest 'app routes are included' => sub {

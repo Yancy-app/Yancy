@@ -84,7 +84,11 @@ my $db_model = Yancy::Model->new(
 unshift @{ $db_model->namespaces }, 'MyApp';
 
 use Yancy::Content;
-my $content = Yancy::Content->new(backend => $backend);
+my $content = Yancy::Content->new(
+  backend => $backend,
+  templates => [qw( blank )],
+  layouts => [qw( default )],
+);
 plugin 'Yancy::Plugin::Content' => backend => $backend;
 
 use Yancy::Storage;

@@ -36,14 +36,17 @@ sub register( $self, $app, @args ) {
             next;
           }
           $c->log->debug('adding route for database page: ' . $page->{pattern});
-          my $method = lc $page->{method};
-          $dbr->$method($page->{pattern})->to(
+
+          # TODO: Attach schema to page and use (controller => 'model')
+          $dbr->any($page->{pattern})->to(
             cb => sub ( $c ) {
-              $c->log->debug('rendering page from database' . $page->{pattern} . ' -- ' . $page->{template});
+              $c->log->debug('rendering page from database: ' . $page->{pattern} . ' -- ' . $page->{template});
               $c->render();
             },
             title => $page->{title},
             template => $page->{template},
+            layout => $page->{layout},
+            name => $page->{name},
           );
         }
 

@@ -22,28 +22,26 @@ test.describe("content editor", () => {
     test("can add new page for privacy policy", async ({ page, browser }) => {
       const newPage = {
         name: "privacy",
-        method: "get",
         pattern: "/about/privacy",
         title: "Privacy Policy",
         template: "blank",
+        layout: "default",
       };
-      const editor = new DatabaseEditor(page);
-      await editor.openTable("pages");
-      await editor.addButton.click();
-      const form = editor.itemEditForm;
-      for (const [k, v] of Object.entries(newPage)) {
-        await form.getByLabel(k).fill(v);
-      }
-      await form.getByRole("button", { name: "save" }).click();
-      await expect(form).not.toBeVisible();
-
-      const table = editor.tableFor("pages");
-      await expect(table).toContainText(newPage.pattern);
-      await expect(table).toContainText(newPage.title);
-      await expect(table).toContainText(newPage.name);
 
       const contentEditor = new ContentEditor(page);
       await contentEditor.websiteTabLabel.click();
+      await contentEditor.newPageButton.click();
+
+      console.log(await page.ariaSnapshot());
+      const form = contentEditor.pageEditForm;
+      await form.getByLabel("name").fill(newPage.name);
+      await form.getByLabel("pattern").fill(newPage.pattern);
+      await form.getByLabel("title").fill(newPage.title);
+      await form.getByLabel("template").selectOption(newPage.template);
+      await form.getByLabel("layout").selectOption(newPage.layout);
+      await form.getByRole("button", { name: "save" }).click();
+      await expect(form).not.toBeVisible();
+
       await expect(contentEditor.websiteTabPanel).toContainText(newPage.name);
       await expect(contentEditor.websiteTabPanel).toContainText(
         newPage.pattern,
