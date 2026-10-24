@@ -3,6 +3,9 @@ import DatabaseEditor from "../../../xt/integration/pages/DatabaseEditor";
 import path from "node:path";
 
 test.describe("database editor", () => {
+  // XXX TODO: 'pages' and 'blocks' database schemas should not show up
+  // in the list of schemas
+
   test("create a calendar", async ({ page }) => {
     await page.goto("/yancy");
     const db = new DatabaseEditor(page);
@@ -29,7 +32,7 @@ test.describe("database editor", () => {
     await expect(table).toBeVisible();
 
     const headers = table.getByRole("columnheader");
-    await expect(headers).toHaveCount(2);
+    await expect(headers).toHaveCount(3);
 
     const newItem = table.getByRole("row", { name: "Birthdays" });
     await expect(newItem).toBeVisible();
@@ -47,6 +50,7 @@ test.describe("database editor", () => {
 
     const form = db.itemEditForm;
     await expect(form).toBeVisible();
+    console.log(await page.ariaSnapshot());
     await expect(form.getByLabel("title")).toBeFocused();
 
     await form.getByLabel("title").fill("Grand Opening");
@@ -73,7 +77,7 @@ test.describe("database editor", () => {
     await expect(table).toBeVisible();
 
     const headers = table.getByRole("columnheader");
-    await expect(headers).toHaveCount(3);
+    await expect(headers).toHaveCount(4);
 
     const newItem = table.getByRole("row", { name: "Grand Opening" });
     await expect(newItem).toBeVisible();
@@ -130,7 +134,7 @@ test.describe("database editor", () => {
     await expect(table).toBeVisible();
 
     const headers = table.getByRole("columnheader");
-    await expect(headers).toHaveCount(5);
+    await expect(headers).toHaveCount(6);
 
     const newItem = table.getByRole("row", { name: "Grand Opening" });
     await expect(newItem).toBeVisible();

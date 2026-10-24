@@ -18,6 +18,22 @@ sub delete( $self, $id ) {
 sub json_schema( $self ) {
   my $schema = $self->SUPER::json_schema;
   $schema->{'x-list-columns'} = [qw( name pattern title )];
+
+  # We only manipulate pages through special UIs, not the standard
+  # database UI
+  $schema->{'x-hidden'} = true;
+
+  # For now, hide the things that aren't useful/implemented yet
+  $schema->{properties}{method}{'x-hidden'} = 1;
+  $schema->{properties}{page_id}{'x-hidden'} = 1;
+  $schema->{properties}{params}{'x-hidden'} = 1;
+  $schema->{properties}{in_app}{'x-hidden'} = 1;
+  $schema->{properties}{schema}{'x-hidden'} = 1;
+
+  # Get all the possible values for template/layout
+  $schema->{properties}{template}{enum} = $self->model->templates;
+  $schema->{properties}{layout}{enum} = $self->model->layouts;
+
   return $schema;
 }
 1;

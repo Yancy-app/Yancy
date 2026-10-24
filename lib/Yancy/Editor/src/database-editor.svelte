@@ -213,6 +213,8 @@
                 >
               </header>
               <ItemForm
+                aria-labelledby="edit-item-heading"
+                id="edit-form"
                 {src}
                 {schema}
                 item={editRow}

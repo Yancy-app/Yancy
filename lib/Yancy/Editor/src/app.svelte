@@ -5,6 +5,9 @@
   import type { YancySchema, YancyListQuery } from "./types";
   import { Accordion } from "@skeletonlabs/skeleton-svelte";
   import "./app.css";
+  import { PlusIcon } from "@lucide/svelte";
+  import EditPageDialog from "./edit-page-dialog.svelte";
+  import type { Page } from "./types.d.ts";
 
   type tabName = "website" | "database";
   const originalTitle: string = "Yancy";
@@ -141,10 +144,6 @@
     offset: number;
     total: number;
   };
-  type Page = {
-    pattern: string;
-    name: string;
-  };
 
   let pages: Page[] = $state([]);
   async function refreshPages() {
@@ -198,6 +197,18 @@
     const [rest, query] = tabState[currentTab] || [[""], {}];
     navigateTab(currentTab, rest, query);
   }
+
+  let showPageDialog = $state(false);
+  function showNewPageDialog() {
+    showPageDialog = true;
+  }
+  function savePage(page: Page) {
+    refreshPages();
+    closePageDialog();
+  }
+  function closePageDialog() {
+    showPageDialog = false;
+  }
 </script>
 
 <div class="yancy-editor">
@@ -215,6 +226,15 @@
                 >
               </li>
             {/each}
+            <li>
+              <button
+                type="button"
+                class="btn preset-tonal-brand"
+                onclick={showNewPageDialog}
+              >
+                <PlusIcon /> New Page
+              </button>
+            </li>
           </ul>
         </Accordion.ItemContent>
       </Accordion.Item>
@@ -253,6 +273,12 @@
       {/if}
     </div>
   </main>
+  <EditPageDialog
+    src={base}
+    onsave={savePage}
+    oncancel={closePageDialog}
+    open={showPageDialog}
+  />
 </div>
 
 <style>

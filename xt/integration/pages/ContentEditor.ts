@@ -12,6 +12,8 @@ export default class EditorPage {
   websiteTabPanel: Locator;
   websiteFrame: Locator;
   websiteDocument: FrameLocator;
+  newPageButton: Locator;
+  pageEditForm: Locator;
 
   // Content Editor Toolbar
   textTagSelect: Locator;
@@ -26,6 +28,8 @@ export default class EditorPage {
     this.websiteDocument = page.frameLocator("#content-view");
     this.statusIcon = page.getByRole("status");
     this.textTagSelect = page.locator(".toolbar .text select[name=tag]");
+    this.newPageButton = page.getByRole("button", { name: "New Page" });
+    this.pageEditForm = page.getByRole("form", { name: "Edit Page" });
   }
 
   async openPage(url: string): Promise<void> {

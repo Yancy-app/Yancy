@@ -1,26 +1,29 @@
 <script lang="ts">
   import type { YancySchema } from "./types";
   import ObjectField from "./object-field.svelte";
+  import type { HTMLFormAttributes } from "svelte/elements";
 
   let {
     src,
     schema,
-    item,
+    item = {},
     oncancel,
     onsave,
+    ...attrs
   }: {
     src: string;
     schema: string;
     item: any;
     onsave?: (item: { [key: string]: any }) => void;
     oncancel?: () => void;
+    attrs: HTMLFormAttributes;
   } = $props();
 
   const apiUrl = src + "/api";
   const storageUrl = src + "/storage";
 
   // The row we are currently editing, with changes
-  let changedRow: any = $derived(JSON.parse(JSON.stringify(item || {})));
+  let changedRow: any = $derived(JSON.parse(JSON.stringify(item)));
 
   // Errors by field
   let fieldErrors: any = $state({});
@@ -139,7 +142,7 @@
   }
 </script>
 
-<form id="edit-form" aria-labelledby="edit-item-heading" onsubmit={saveRow}>
+<form onsubmit={saveRow} {...attrs}>
   {#if hasError}
     <div role="alert" aria-describedby="error-description">
       <span id="error-description">Error</span>

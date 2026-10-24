@@ -12,6 +12,13 @@ a content _editor_. That is provided elsewhere by L<Yancy::Plugin::Editor>.
 
 =cut
 
+# XXX: For now, we need to register each template/layout that we want folks to
+# be able to use and/or override. This is probably the safest idea, but it
+# wasn't what I was originally envisioning: Any template could be edited.
+
+has templates => sub {[]};
+has layouts => sub {[]};
+
 sub new($class, @args) {
   my $self = $class->SUPER::new(@args);
   unshift @{$self->namespaces}, 'Yancy::Content';
@@ -58,3 +65,15 @@ CREATE TABLE blocks (
 -- 1 down
 DROP TABLE blocks;
 DROP TABLE pages;
+
+-- 2 up
+ALTER TABLE pages ADD COLUMN layout STRING DEFAULT 'default';
+ALTER TABLE pages ADD COLUMN schema STRING DEFAULT NULL;
+ALTER TABLE pages DROP COLUMN method;
+ALTER TABLE pages ADD COLUMN method STRING DEFAULT NULL;
+
+-- 2 down
+ALTER TABLE pages DROP COLUMN schema;
+ALTER TABLE pages DROP COLUMN layout;
+ALTER TABLE pages DROP COLUMN method;
+ALTER TABLE pages ADD COLUMN method STRING NOT NULL;

@@ -67,3 +67,15 @@ export type YancyUpdateMessage = YancyIframeMessage & {
   name: "update";
   block?: YancyBlock;
 };
+
+export type Page = {
+  page_id: number;
+  name: string;
+  pattern: string;
+  title: string;
+  template: string;
+  layout: string;
+  method: string;
+  schema: string;
+  params: { [key: string]: any };
+};

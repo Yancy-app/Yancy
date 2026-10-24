@@ -10,6 +10,8 @@
     schema: YancySchema;
   };
 
+  const id = $props.id();
+
   let {
     schema,
     value = {},
@@ -75,7 +77,7 @@
         <legend>{col.title || col.field}</legend>
         <SchemaField
           {storage}
-          id={"field-" + col.field}
+          id={"field-" + col.field + "-" + id}
           name={col.field}
           schema={col.schema}
           value={newValue[col.field]}
@@ -85,19 +87,19 @@
       </fieldset>
     {:else}
       <div>
-        <label class="label" for="field-{col.field}"
+        <label class="label" for="field-{col.field}-{id}"
           >{col.title || col.field}</label
         >
+        <SchemaField
+          {storage}
+          id={"field-" + col.field + "-" + id}
+          name={col.field}
+          schema={col.schema}
+          value={newValue[col.field]}
+          error={errors[col.field]}
+          onchange={(changeValue) => updateValue(col.field, changeValue)}
+        />
       </div>
-      <SchemaField
-        {storage}
-        id={"field-" + col.field}
-        name={col.field}
-        schema={col.schema}
-        value={newValue[col.field]}
-        error={errors[col.field]}
-        onchange={(changeValue) => updateValue(col.field, changeValue)}
-      />
     {/if}
   {/each}
 </div>
