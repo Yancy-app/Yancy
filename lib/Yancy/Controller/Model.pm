@@ -265,7 +265,7 @@ sub clean_item {
   my ( $self, $item ) = @_;
   my $props = $self->schema->json_schema->{properties};
   my @keep_props = grep { !$props->{$_} || ($props->{$_}{format}//'') ne 'password' } keys %$item;
-  return { map { $_ => $item->{$_} } @keep_props };
+  return $self->schema->build_item({ map { $_ => $item->{$_} } @keep_props });
 }
 
 =method list
