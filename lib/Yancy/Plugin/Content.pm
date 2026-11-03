@@ -66,9 +66,10 @@ sub register( $self, $app, @args ) {
     });
 
     $app->helper( block => sub ($c, $name, $attrs, $content=sub {}) {
+        my $path = $attrs->{static} ? '*' : $c->match->path_for->{path};
         # Look up the block in the database
         my $res = $self->model->schema('blocks')->list({
-            path => $c->match->path_for->{path},
+            path => $path,
             name => $name,
         });
         if ( $res->{items}->@* ) {

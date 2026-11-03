@@ -67,10 +67,13 @@ function startEditor(block: HTMLElement) {
       oninput(newContent) {
         const block = blockElements.get(blockName);
         const blockId = block.getAttribute("block_id");
+        const blockPath = block.getAttribute("static")
+          ? "*"
+          : window.location.pathname;
         const blockData = {
           ...(blockId ? { block_id: blockId } : {}),
           name: blockName,
-          path: window.location.pathname,
+          path: blockPath,
           content: newContent,
         };
         console.log("sending block to editor", blockData);

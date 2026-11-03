@@ -284,7 +284,8 @@ subtest 'blocks' => sub {
     my $t = build_app($backend);
     my $app = $t->app;
 
-    $app->routes->get('/*slug')->to( cb => sub ($c) { $c->render('blocks') } );
+    $app->routes->get('/block/*slug')->to( cb => sub ($c) { $c->render('blocks') } );
+    $app->routes->get('/static/*slug')->to( cb => sub ($c) { $c->render('static-blocks') } );
 
     # Get the "before_server_start" hook to run.
     $app->server(Mojo::Server->new);
@@ -293,16 +294,31 @@ subtest 'blocks' => sub {
     my $schema = $model->schema('blocks');
 
     subtest 'block helper default content' => sub {
-        $t->get_ok('/index')->status_is(200)->content_like(qr{\s*<y-block[^>]+>\s*Default block content\s*</y-block>\s*});
+        $t->get_ok('/block/index')->status_is(200)->content_like(qr{\s*<y-block[^>]+>\s*Default block content\s*</y-block>\s*});
     };
 
-    subtest 'block content can be overridden' => sub {
+    subtest 'block content can be overridden by path' => sub {
         my $block_id = $schema->create({
-            path => '/index',
+            path => '/block/index',
             name => 'block_name',
             content => 'Overridden block content',
         });
-        $t->get_ok('/index')->status_is(200)->content_like(qr{\s*<y-block[^>]+>\s*Overridden block content\s*</y-block>});
+        $t->get_ok('/block/index')->status_is(200)->content_like(qr{\s*<y-block[^>]+>\s*Overridden block content\s*</y-block>});
+        $t->attr_is('y-block', block_id => $block_id);
+        $t->get_ok('/block/default')->status_is(200)->content_like(qr{\s*<y-block[^>]+>\s*Default block content\s*</y-block>});
+    };
+
+    subtest 'static blocks are the same on every page' => sub {
+        my $block_id = $schema->create({
+            path => '*',
+            name => 'static_block',
+            content => 'Replaced static content',
+        });
+        $t->get_ok('/static/index')->status_is(200);
+        $t->content_like(qr{\s*<y-block[^>]+>\s*Replaced static content\s*</y-block>});
+        $t->attr_is('y-block', block_id => $block_id);
+        $t->get_ok('/static/other')->status_is(200);
+        $t->content_like(qr{\s*<y-block[^>]+>\s*Replaced static content\s*</y-block>});
         $t->attr_is('y-block', block_id => $block_id);
     };
 };
@@ -378,6 +394,11 @@ overridden
 @@ blocks.html.ep
 %= block block_name => { }, begin
 Default block content
+% end
+
+@@ static-blocks.html.ep
+%= block static_block => { static => 1 }, begin
+Static content
 % end
 
 @@ widgets.html.ep
