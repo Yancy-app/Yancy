@@ -66,10 +66,10 @@ sub json_schema {
   my ( $self ) = @_;
   my %json_schema;
   for my $model ( $self->models->@* ) {
-    %json_schema = (
-      $model->json_schema->%*,
-      %json_schema,
-    );
+    my %model_schema = $model->json_schema->%*;
+    for my $schema_name ( keys %model_schema ) {
+      $json_schema{ $schema_name } = Yancy::Model::_merge_schema( $json_schema{ $schema_name } // {}, $model_schema{ $schema_name });
+    }
   }
   return \%json_schema;
 }
@@ -82,7 +82,8 @@ Get a list of all the schema names.
 
 sub schema_names {
   my ( $self ) = @_;
-  return uniq map { $_->schema_names } $self->models->@*;
+  my $json_schema = $self->json_schema;
+  return grep { !$json_schema->{$_}{'x-ignore'} } keys %$json_schema;
 }
 
 1;

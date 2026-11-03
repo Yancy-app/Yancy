@@ -159,7 +159,9 @@
   onMount(async () => {
     const res = await fetch(base + "/api");
     const apiSchema = await res.json();
-    databaseSchema = Object.entries(apiSchema);
+    databaseSchema = Object.entries(apiSchema).filter(
+      ([k, v]) => !v["x-hidden"],
+    );
     databaseSchema = databaseSchema.sort((a, b) => {
       const aTitle = a[1].title?.toLowerCase() || a[0];
       const bTitle = b[1].title?.toLowerCase() || b[0];
