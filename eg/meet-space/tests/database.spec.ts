@@ -50,7 +50,6 @@ test.describe("database editor", () => {
 
     const form = db.itemEditForm;
     await expect(form).toBeVisible();
-    console.log(await page.ariaSnapshot());
     await expect(form.getByLabel("title")).toBeFocused();
 
     await form.getByLabel("title").fill("Grand Opening");
@@ -84,6 +83,16 @@ test.describe("database editor", () => {
     const cells = newItem.getByRole("cell");
     await expect(cells).toHaveCount(4);
     await expect(cells.nth(1)).toContainText("Grand Opening");
+
+    // Edit the post to set the published date
+    await newItem.getByRole("button", { name: "edit" }).click();
+    await expect(form).toBeVisible();
+    await expect(form.getByLabel("title")).toHaveValue("Grand Opening");
+
+    await form.getByLabel("publish_datetime").fill("2026-01-01T00:00");
+    await form.getByRole("button", { name: "save" }).click();
+    await expect(form).not.toBeVisible();
+    await expect(table).toBeVisible();
 
     // Now look at the news post on the site
     await page.goto("/news");

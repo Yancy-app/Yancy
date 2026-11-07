@@ -32,7 +32,7 @@ L<Yancy::Guides::Model>, L<Yancy::Model>
 
 use Mojo::Base -base;
 use Mojo::JSON qw( true false );
-use Yancy::Util qw( json_validator is_type );
+use Yancy::Util qw( json_validator is_type is_required );
 
 =attr model
 
@@ -137,6 +137,14 @@ sub validate {
         # problem is the database understanding the value, it must be
         # fixed in the backend class.
 
+        # If the incoming value is `null`, and the schema doesn't allow `null`,
+        # but the field is optional, remove it
+        if (exists $check_item{ $prop_name } && !defined( $check_item{ $prop_name } ) && !is_required($schema, $prop_name) ) {
+          $self->_log->debug('removing null for '. $prop_name);
+          delete $check_item{ $prop_name };
+          next;
+        }
+
         # Pre-filter booleans
         if ( is_type( $prop->{type}, 'boolean' ) && defined $check_item{ $prop_name } ) {
             my $value = $check_item{ $prop_name };
@@ -176,6 +184,13 @@ sub validate {
     }
 
     push @errors, $v->validate( \%check_item );
+
+    # If we get an error for an optional field we removed, ignore it.
+    @errors = map { $_->[0] }
+      grep { is_required($schema, $_->[1]) || exists $check_item{$_->[1]}}
+      map { [$_, $_->path =~ s{^/}{}r] }
+      @errors;
+
     return @errors;
 }
 

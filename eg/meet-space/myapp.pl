@@ -349,7 +349,7 @@ DROP TABLE locations;
 % for my $item ( @$items ) {
   <article>
     <h2>
-      %= link_to news_post => $item, begin
+      %= link_to news_post => {%$item}, begin
         %= $item->{title}
       % end
     </h2>

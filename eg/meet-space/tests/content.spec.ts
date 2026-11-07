@@ -32,7 +32,6 @@ test.describe("content editor", () => {
       await contentEditor.websiteTabLabel.click();
       await contentEditor.newPageButton.click();
 
-      console.log(await page.ariaSnapshot());
       const form = contentEditor.pageEditForm;
       await form.getByLabel("name").fill(newPage.name);
       await form.getByLabel("pattern").fill(newPage.pattern);

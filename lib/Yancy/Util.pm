@@ -43,7 +43,7 @@ use Carp qw( carp );
 use JSON::Validator;
 
 our @EXPORT_OK = qw( load_backend curry currym copy_inline_refs match derp fill_brackets
-    is_type order_by is_format json_validator routify );
+    is_type is_required order_by is_format json_validator routify );
 
 =sub load_backend
 
@@ -463,6 +463,19 @@ sub is_format {
     my ( $format, $is_format ) = @_;
     return unless $format;
     return $format eq $is_format;
+}
+
+=sub is_required
+
+    my $bool = is_required( $schema, 'prop_name' );
+
+Returns true if the given JSON schema requires the given property.
+
+=cut
+
+sub is_required {
+  my ( $schema, $prop_name ) = @_;
+  return any { $_ eq $prop_name } $schema->{required}->@*;
 }
 
 =sub derp
