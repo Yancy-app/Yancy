@@ -6,6 +6,7 @@
   import type { AriaAttributes } from "svelte/elements";
   import ArrayField from "./array-field.svelte";
   import ContentField from "./content-field.svelte";
+  import { Temporal } from "@js-temporal/polyfill";
 
   function isNumberType(schema: YancySchema): boolean {
     const typeName =
@@ -89,6 +90,28 @@
       // Set the bad value so we can get the error when we try to submit
       updateValue(newText);
     }
+  }
+
+  function convertDateTime(dateTimeWithZone: string | null): string | null {
+    if (!dateTimeWithZone) {
+      return null;
+    }
+    const dt = Temporal.Instant.from(dateTimeWithZone);
+    return dt
+      .toZonedDateTimeISO(Temporal.Now.timeZoneId())
+      .toPlainDateTime()
+      .toString();
+  }
+
+  function updateDateTime(e: Event) {
+    const newDateTime = (e.target as HTMLInputElement).value;
+    if (!newDateTime) {
+      return;
+    }
+    const dt = Temporal.PlainDateTime.from(newDateTime)
+      .toZonedDateTime(Temporal.Now.timeZoneId())
+      .toInstant();
+    updateValue(dt.toString());
   }
 </script>
 
@@ -212,8 +235,8 @@
       {...attrs}
       aria-invalid={!!error}
       aria-errormessage={error ? id + "-error" : null}
-      value={newValue}
-      onchange={(e) => updateField(e)}
+      value={convertDateTime(newValue)}
+      onchange={(e) => updateDateTime(e)}
       disabled={schema.readOnly}
     />
     {#if error}

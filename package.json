@@ -37,6 +37,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
     "@lucide/svelte": "^1.41.0",
     "@tailwindcss/vite": "^4.3.3",
     "@tiptap-codeless/extension-drag-handle": "^1.0.0",

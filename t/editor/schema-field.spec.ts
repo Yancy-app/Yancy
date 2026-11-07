@@ -7,6 +7,7 @@ import SchemaField from "../../lib/Yancy/Editor/src/schema-field.svelte";
 import type { UserEvent } from "@testing-library/user-event/dist/cjs/setup/setup.js";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import { Temporal } from "@js-temporal/polyfill";
 
 const handlers = [
   http.put("./storage/:id", () => {
@@ -228,13 +229,31 @@ describe("SchemaField", () => {
       {
         title: "shows correct input for date-time",
         schema: { type: "string", format: "date-time" },
-        value: "2025-01-01T01:20:30.000",
+        // date-time from the server will have a time zone, so we need to
+        // convert to/from on the client-side
+        value: "2025-01-01T01:20:30.000Z",
         check: async (testCase: TestCase): Promise<void> => {
-          const field = screen.getByTestId("fieldName");
+          const field = screen.getByTestId("fieldName") as HTMLInputElement;
           expect(field).toBeVisible();
           expect(field).toBeInstanceOf(HTMLInputElement);
           expect(field).toHaveAttribute("type", "datetime-local");
-          expect(field).toHaveValue(testCase.value);
+
+          // Convert the value to the local timezone
+          const localTimeZone = Temporal.Now.timeZoneId();
+          const gotValue = field.value;
+          const gotValueDateTime =
+            Temporal.PlainDateTime.from(gotValue).toZonedDateTime(
+              localTimeZone,
+            );
+          const expectValue = testCase.value;
+          const expectValueDateTime =
+            Temporal.Instant.from(expectValue).toZonedDateTimeISO(
+              localTimeZone,
+            );
+          expect(gotValueDateTime.equals(expectValueDateTime)).toBeTruthy();
+        },
+        submit: async (testCase: TestCase, value: any): Promise<void> => {
+          expect(value).toBe(testCase.value);
         },
       },
 
