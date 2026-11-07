@@ -40,14 +40,25 @@ sub build_app {
 
 subtest 'put' => sub {
   my ($t, $tempdir) = build_app();
-  $t->put_ok('/storage/foobar', 'FOOBAR')->status_is(201);
+  $t->put_ok('/storage/foobar', 'FOOBAR')
+    ->status_is(200)
+    ->json_is({id => 'foobar'});
   is $tempdir->child('foobar')->slurp, 'FOOBAR';
 };
 
 subtest 'post' => sub {
   my ($t, $tempdir) = build_app();
-  $t->post_ok('/storage/', form => { foo => { content => 'FOOBAR', filename => 'foobar' }})->status_is(201);
+  $t->post_ok('/storage/', form => { foo => { content => 'FOOBAR', filename => 'foobar' }})
+    ->status_is(200)
+    ->json_is([{id => 'foobar'}]);
   is $tempdir->child('foobar')->slurp, 'FOOBAR';
+
+  subtest 'post with prefix' => sub {
+    $t->post_ok('/storage/fizz/buzz', form => { foo => { content => 'FOOBAR', filename => 'foobar' }})
+      ->status_is(200)
+      ->json_is([{id => 'fizz/buzz/foobar'}]);
+    is $tempdir->child('fizz/buzz/foobar')->slurp, 'FOOBAR';
+  };
 };
 
 subtest 'get' => sub {
@@ -68,7 +79,7 @@ subtest 'list' => sub {
   $tempdir->child('foobar')->spurt('FOOBAR');
   $tempdir->child('foo')->make_path->child('bar')->spurt('FOOBAR');
 
-  $t->get_ok('/storage')->status_is(200)->json_is([qw( foo/bar foobar )]);
+  $t->get_ok('/storage')->status_is(200)->json_is([map +{ id => $_ }, qw( foo/bar foobar )]);
 };
 
 subtest 'get missing file' => sub {
@@ -90,7 +101,8 @@ subtest 'ids outside of root are rejected' => sub {
   is $outside->slurp, 'SECRET', 'file outside root not changed';
 
   $t->post_ok('/storage/', form => { foo => { content => 'PWNED', filename => "../$outside_name" }})
-    ->status_is(201);
+    ->status_is(200)
+    ->json_is([{id => $outside_name}]);
   is $outside->slurp, 'SECRET', 'upload path in filename is ignored';
   is $tempdir->child($outside_name)->slurp, 'PWNED', 'upload stored in root';
 

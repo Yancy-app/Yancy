@@ -48,7 +48,11 @@ sub put( $c ) {
   my $id = $c->param('id');
   return $c->_invalid_id($id) unless $storage->valid_id($id);
   $storage->put( $id, $c->req->body );
-  $c->rendered(201);
+  return $c->render(
+    json => {
+      id => $id,
+    }
+  );
 }
 
 =method post
@@ -71,7 +75,9 @@ sub post( $c ) {
     $c->log->info("Uploading file $id");
     $storage->put( $id, $upload->asset );
   }
-  $c->rendered(201);
+  return $c->render(
+    json => [ map +{ id => $_->[0] }, @uploads ],
+  );
 }
 
 =method delete
@@ -91,7 +97,9 @@ sub delete( $c ) {
 =cut
 
 sub list( $c ) {
-  return $c->render(json => $c->_storage->list($c->param('prefix')))
+  return $c->render(json => [
+    map +{ id => $_ }, $c->_storage->list($c->param('prefix'))->@*
+  ]);
 }
 
 1;
