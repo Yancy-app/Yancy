@@ -9,8 +9,13 @@
 
   let {
     src = "/",
+    storage = "./storage",
     onNavigate = () => {},
-  }: { src: string; onNavigate: (newLocation: string) => void } = $props();
+  }: {
+    src: string;
+    storage: string;
+    onNavigate: (newLocation: string) => void;
+  } = $props();
   let channel = new MessageChannel();
   let saving: boolean = $state(false);
   const saveBlock = async (msg: YancyInputMessage) => {
@@ -48,7 +53,7 @@
       onNavigate(e.data.location);
 
       console.debug("telling iframe to enable editing");
-      channel.port1.postMessage({ version: 0, name: "enable" });
+      channel.port1.postMessage({ version: 0, name: "enable", storage });
     } else if (e.data.name === "input") {
       // Iframe is going to send every message, it's up to the editor to debounce.
       saving = true;

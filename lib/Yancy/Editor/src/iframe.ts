@@ -1,5 +1,9 @@
 import { Editor } from "@tiptap/core";
-import { YancyCommandMessage, YancyUpdateMessage } from "./types.js";
+import {
+  YancyCommandMessage,
+  YancyEnableMessage,
+  YancyUpdateMessage,
+} from "./types.js";
 import ContentField from "./content-field.svelte";
 import { mount } from "svelte";
 import "./iframe.css";
@@ -49,7 +53,7 @@ function getFocusedEditor(): Editor {
   return blockEditors.get(focusedBlock);
 }
 
-function startEditor(block: HTMLElement) {
+function startEditor(block: HTMLElement, opts: YancyEnableMessage) {
   const blockId = block.getAttribute("block_id");
   const blockName = block.getAttribute("name");
   blockElements.set(blockName, block);
@@ -64,6 +68,7 @@ function startEditor(block: HTMLElement) {
     props: {
       value: content,
       detachToolbar: true,
+      storage: opts.storage,
       oninput(newContent) {
         const block = blockElements.get(blockName);
         const blockId = block.getAttribute("block_id");
@@ -95,13 +100,13 @@ function handleBodyClick(e: PointerEvent) {
   }
 }
 
-function enableEditing() {
+function enableEditing(opts: YancyEnableMessage) {
   // Set up all the necessary Tiptap instances
   for (const block of document.querySelectorAll("y-block")) {
     if (!(block instanceof HTMLElement)) {
       continue;
     }
-    startEditor(block);
+    startEditor(block, opts);
   }
 
   window.addEventListener("click", handleBodyClick);
@@ -110,7 +115,8 @@ function enableEditing() {
 function handleEvent(e: MessageEvent<YancyEditorMessage>) {
   console.debug("got message from editor", e);
   if (e.data.name === "enable") {
-    enableEditing();
+    const enableEvent = e.data as YancyEnableMessage;
+    enableEditing(e.data);
   } else if (e.data.name === "command" && focusedBlock) {
     // Fire command in editor
     const commandEvent = e.data as YancyCommandMessage;

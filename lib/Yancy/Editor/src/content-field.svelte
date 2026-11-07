@@ -1,13 +1,17 @@
 <script lang="ts">
   import { onMount, onDestroy, tick } from "svelte";
   import {
+    Dialog,
+    FileUpload,
     Menu,
     Popover,
     Portal,
     usePopover,
   } from "@skeletonlabs/skeleton-svelte";
   import type { OpenChangeDetails } from "@zag-js/popover";
+  import type { FileAcceptDetails } from "@zag-js/file-upload";
   import { Color } from "@tiptap/extension-text-style";
+  import Image from "@tiptap/extension-image";
   import { ListItem } from "@tiptap/extension-list";
   import { TextStyle } from "@tiptap/extension-text-style";
   import { TextStyleKit } from "@tiptap/extension-text-style";
@@ -18,6 +22,7 @@
   import {
     BoldIcon,
     CheckIcon,
+    ImageIcon,
     ItalicIcon,
     LinkIcon,
     ListIcon,
@@ -28,6 +33,7 @@
     RedoIcon,
     UnderlineIcon,
     UndoIcon,
+    XIcon,
   } from "@lucide/svelte";
   import type { ClassValue, SvelteHTMLElements } from "svelte/elements";
 
@@ -40,6 +46,7 @@
     detachToolbar = false,
     name,
     label,
+    storage,
     ...attrs
   }: {
     oninput: (newContent: string) => void;
@@ -48,6 +55,7 @@
     detachToolbar: boolean;
     name: string;
     label: string;
+    storage?: string;
     attrs: SvelteHTMLElements["div"] & { class: ClassValue };
   } = $props();
 
@@ -79,6 +87,15 @@
         attributes: { id, name, "aria-label": label },
       },
       extensions: [
+        Image.configure({
+          resize: {
+            enabled: true,
+            directions: ["top", "bottom", "left", "right"],
+            minWidth: 50,
+            minHeight: 50,
+            alwaysPreserveAspectRatio: true,
+          },
+        }),
         TextStyleKit.configure({
           color: {
             types: [TextStyle.name, ListItem.name],
@@ -195,13 +212,6 @@
         editorState.editor?.chain().focus().setHorizontalRule().run();
       },
     },
-    {
-      value: "img",
-      label: "Image",
-      apply() {
-        editorState.editor?.chain().focus().run();
-      },
-    },
   ];
 
   const uid = $props.id();
@@ -226,6 +236,36 @@
   let showToolbar = $derived(
     editorState.editor?.isFocused || menuOpen || onToolbar || showLink,
   );
+
+  async function uploadImage(details: FileAcceptDetails) {
+    if (!storage) {
+      // TODO: Error toasts
+      console.error("No storage to upload to");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("file", details.files[0]);
+
+    try {
+      const response = await fetch(storage, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const src = `${storage}/${result[0].id}`;
+        editorState.editor?.chain().focus().setImage({ src }).run();
+      } else {
+        const error = await response.json();
+        // TODO: Error toasts
+        console.error("upload failed", error);
+      }
+    } catch (error) {
+      // TODO: Error toasts
+      console.error("exception", error);
+    }
+  }
 </script>
 
 <div style="position: relative" data-theme="cerberus">
@@ -398,6 +438,7 @@
           </Popover.Positioner>
         </Portal>
       </Popover.Provider>
+
       <span class="vr"></span>
 
       <button
@@ -441,6 +482,41 @@
         disabled={!editorState.editor?.can().sinkListItem("listItem")}
         ><ListIndentIncreaseIcon class="size-4" /></button
       >
+
+      <span class="vr"></span>
+
+      <!-- Image menu -->
+      <Menu
+        onOpenChange={(details) => {
+          menuOpen = details.open;
+        }}
+      >
+        <Menu.Trigger>
+          {#snippet element(attributes)}
+            <button
+              aria-label="Insert image"
+              class="btn-icon btn-icon-base preset-tonal"
+              {...attributes}><ImageIcon class="size-4" /></button
+            >
+          {/snippet}
+        </Menu.Trigger>
+        <Portal>
+          <Menu.Positioner>
+            <Menu.Content data-theme="cerberus">
+              <Menu.Item value="upload">
+                <FileUpload
+                  class="btn btn-preset-tonal"
+                  disabled={!storage}
+                  onFileAccept={uploadImage}
+                >
+                  <FileUpload.Trigger>Upload from Computer</FileUpload.Trigger>
+                  <FileUpload.HiddenInput />
+                </FileUpload>
+              </Menu.Item>
+            </Menu.Content>
+          </Menu.Positioner>
+        </Portal>
+      </Menu>
     </div>
   </Portal>
 

@@ -122,6 +122,7 @@
       {...attrs}
       label={schema.title || name}
       value={newValue}
+      {storage}
       disabled={schema.readOnly}
       oninput={updateValue}
     />

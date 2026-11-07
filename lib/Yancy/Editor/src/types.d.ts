@@ -52,6 +52,10 @@ export type YancyEditMessage = YancyIframeMessage & {
   name: "edit";
   schema: any;
 };
+export type YancyEnableMessage = YancyIframeMessage & {
+  name: "enable";
+  storage: string;
+};
 export type YancyNode = [string, { [key: string]: any }?];
 export type YancyFocusMessage = YancyIframeMessage & {
   name: "focus";

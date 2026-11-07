@@ -263,6 +263,7 @@
         <ContentEditor
           bind:this={contentEditor}
           src="/"
+          storage={base + "/storage"}
           onNavigate={websiteChanged}
         ></ContentEditor>
       {:else if currentTab == "database"}
