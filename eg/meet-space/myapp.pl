@@ -237,6 +237,11 @@ DROP TABLE locations;
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.conditional.min.css">
     <!-- XXX: This style tag should be provided by a helper -->
     <link rel="stylesheet" href="/editor/editor.css">
+
+    <style>
+      /* Override some editor styles that don't apply here... */
+      html,body,#app { overflow: auto; }
+    </style>
   </head>
   <body>
     <div class="pico">
