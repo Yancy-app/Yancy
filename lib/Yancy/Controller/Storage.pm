@@ -70,6 +70,9 @@ sub post( $c ) {
     return $c->_invalid_id($id) unless $storage->valid_id($id);
     push @uploads, [ $id, $upload ];
   }
+  if (!@uploads) {
+    return $c->render( status => 400, json => {error => 'no uploads'} );
+  }
   for my $item ( @uploads ) {
     my ( $id, $upload ) = @$item;
     $c->log->info("Uploading file $id");
