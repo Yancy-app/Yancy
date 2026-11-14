@@ -1,5 +1,7 @@
 # Yancy Content Management System
 
+Read GLOSSARY.md for terminology.
+
 Yancy is a Content Management System written in Perl using the Mojolicious web
 framework. Yancy uses the Model View Controller (MVC) pattern that Mojolicious
 is designed for. Yancy itself provides the model layer, controllers that work
