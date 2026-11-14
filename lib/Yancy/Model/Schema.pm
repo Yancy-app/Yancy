@@ -86,7 +86,7 @@ sub id_field {
 
 =method build_item
 
-Turn a hashref of row data into a L<Yancy::Model::Item> object using
+Turn a hashref of data into a L<Yancy::Model::Item> object using
 L<Yancy::Model/find_class> to find the correct class.
 
 =cut
@@ -196,7 +196,24 @@ sub validate {
 
 =method get
 
-Get an item by its ID. Returns a L<Yancy::Model::Item> object.
+  my $item = $schema->get( $id, %opts );
+
+Get an item by its ID. C<$id> is either a string for a single key field or 
+a hashref for a composite key. Returns a L<Yancy::Model::Item> object.
+
+C<%opts> is a list of name/value pairs of options with the following
+names:
+
+=over
+
+=item join
+
+Join one or more tables using a C<x-foreign-key> field. This should be
+the name of the schema to join, either by a foreign key on this table,
+or a foreign key on the joined table. Join multiple tables at the same
+time by passing an arrayref of joins.
+
+=back
 
 =cut
 
@@ -207,9 +224,60 @@ sub get {
 
 =method list
 
-List items. Returns a hash reference with C<items> and C<total> keys. The C<items> is
-an array ref of L<Yancy::Model::Item> objects. C<total> is the total number of items
-that would be returned without any C<offset> or C<limit> options.
+    my $result = $schema->list( $where, %opt );
+    # { total => ..., items => [ ... ] }
+
+Fetch a list of items from the schema. C<$where> is a L<SQL::Abstract where
+structure|SQL::Abstract/WHERE
+CLAUSES>.
+
+    # Search for all Dougs
+    $be->list( 'people', { name => { -like => 'Doug%' } } );
+    # Find adults
+    $be->list( 'people', { age => { '>=' => 18 } } );
+    # Find men we can contact
+    $be->list( 'people', { gender => 'male', contact => 1 } );
+
+C<%opt> is a list of name/value pairs with the following keys:
+
+=over
+
+=item * limit - The number of items to return
+
+=item * offset - The number of items to skip
+
+=item * order_by - A L<SQL::Abstract order by clause|SQL::Abstract/ORDER BY CLAUSES>
+
+=item * join - Join one or more tables using a C<x-foreign-key> field.
+This can be the name of a foreign key field on this schema, or the name
+of a table with a foreign key field that refers to this schema. Join
+multiple tables at the same time by passing an arrayref of joins. Fields
+in joined tables can be queried by prefixing the join name to the field,
+separated by a dot.
+
+=back
+
+    # Get the second page of 20 people
+    $be->list( 'people', {}, limit => 20, offset => 20 );
+    # Get the list of people sorted by age, oldest first
+    $be->list( 'people', {}, order_by => { -desc => 'age' } );
+    # Get the list of people sorted by age first, then name (ascending)
+    $be->list( 'people', {}, order_by => [ 'age', 'name' ] );
+
+Returns a hashref with two keys:
+
+=over
+
+=item items
+
+An array reference of hash references of item data
+
+=item total
+
+The total count of items that would be returned without C<limit> or
+C<offset>.
+
+=back
 
 =cut
 
@@ -248,7 +316,13 @@ sub create {
 
 =method set
 
-Set the given fields in an item. See also L<Yancy::Model::Item/set>.
+Set the given fields in an item. C<$id> is
+the ID of the item to update: Either a string for a single key field, or a hash
+reference for a composite key. C<$item> is the item's data to set. Returns a
+boolean that is true if an item with the given ID was found and updated, false
+otherwise.
+
+See also L<Yancy::Model::Item/set> if you have an item.
 
 =cut
 
@@ -275,7 +349,11 @@ sub set {
 
 =method delete
 
-Delete an item. See also L<Yancy::Model::Item/delete>.
+Delete an item. C<$id> is the ID of the item to delete: Either a string for a
+single key field, or a hash reference for a composite key. Returns a boolean
+that is true if an item with the given ID was found and deleted. False otherwise.
+
+See also L<Yancy::Model::Item/delete>.
 
 =cut
 

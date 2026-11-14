@@ -42,10 +42,6 @@ Reading and writing your data.
 
 Configuring and extending the Yancy editor.
 
-=item L<Yancy::Guides::Accounts>
-
-User authentication, authorization, and information.
-
 =item L<Yancy::Guides::Cookbook>
 
 Recipes for Yancy applications.

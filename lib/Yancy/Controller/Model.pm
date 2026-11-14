@@ -300,7 +300,7 @@ The number of items to show on the page. Defaults to C<10>.
 =item page
 
 The page number to show. Defaults to C<1>. The page number will
-be used to calculate the C<offset> parameter to L<Yancy::Backend/list>.
+be used to calculate the C<offset> parameter to L<Yancy::Model::Schema/list>.
 
 =item filter
 
@@ -313,7 +313,7 @@ authorization / security.
 
 =item order_by
 
-Set the default order for the items. Supports any L<Yancy::Backend/list>
+Set the default order for the items. Supports any L<Yancy::Model::Schema/list>
 C<order_by> structure.
 
 =item join
@@ -1053,7 +1053,7 @@ The number of items to show on the page. Defaults to C<10>.
 =item page
 
 The page number to show. Defaults to C<1>. The page number will
-be used to calculate the C<offset> parameter to L<Yancy::Backend/list>.
+be used to calculate the C<offset> parameter to L<Yancy::Model::Schema/list>.
 
 =item filter
 
@@ -1066,7 +1066,7 @@ authorization / security.
 
 =item order_by
 
-Set the default order for the items. Supports any L<Yancy::Backend/list>
+Set the default order for the items. Supports any L<Yancy::Model::Schema/list>
 C<order_by> structure.
 
 =item before_render
