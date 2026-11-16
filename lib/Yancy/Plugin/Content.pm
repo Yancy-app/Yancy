@@ -25,7 +25,7 @@ sub register( $self, $app, @args ) {
 
     $app->hook( before_dispatch => sub ($c) {
         # See if we have an override for this route and render that instead
-        $c->log->debug('building routes for database pages');
+        $c->log->trace('building routes for database pages');
         my $dbr = Mojolicious::Routes->new(
             map { $_ => $app->routes->$_ } qw(base_classes conditions namespaces shortcuts types),
         );
@@ -35,12 +35,12 @@ sub register( $self, $app, @args ) {
           if ($params{hidden}) {
             next;
           }
-          $c->log->debug('adding route for database page: ' . $page->{pattern});
+          $c->log->trace('adding route for database page: ' . $page->{pattern});
 
           # TODO: Attach schema to page and use (controller => 'model')
           $dbr->any($page->{pattern})->to(
             cb => sub ( $c ) {
-              $c->log->debug('rendering page from database: ' . $page->{pattern} . ' -- ' . $page->{template});
+              $c->log->trace('rendering page from database: ' . $page->{pattern} . ' -- ' . $page->{template});
               $c->render();
             },
             title => $page->{title},
@@ -53,10 +53,10 @@ sub register( $self, $app, @args ) {
         my $ok = 0;
         local $@;
         eval {
-          $c->log->debug('attempting dispatch to database page');
+          $c->log->trace('attempting dispatch to database page');
           $ok = $dbr->dispatch($c);
         };
-        $c->log->debug('dispatch to database page ' . ($ok ? 'success' : 'failed') . ($@ ? " with error: " . ($@ =~ s{\n$}{}r) : ""));
+        $c->log->trace('dispatch to database page ' . ($ok ? 'success' : 'failed') . ($@ ? " with error: " . ($@ =~ s{\n$}{}r) : ""));
         # The database dispatch may have added a match even if it didn't actually
         # dispatch: The root node (`/`) always matches, Mojolicious just sees
         # there is nothing to render. But, we have to replace the match object
@@ -73,7 +73,7 @@ sub register( $self, $app, @args ) {
             name => $name,
         });
         if ( $res->{items}->@* ) {
-          $c->log->debug('Found block for ' . $name . ': ' . encode_json($res->{items}[0]) );
+          $c->log->trace('Found block for ' . $name . ': ' . encode_json($res->{items}[0]) );
           $attrs->{block_id} = $res->{items}[0]{block_id};
           $content = sub { $res->{items}[0]{content} };
         }
@@ -113,17 +113,17 @@ sub init($self, $app) {
         if ( $db_route ) {
             delete $db_routes{ $name };
             next unless $db_route->{in_app};
-            $self->log->debug('updating database page ' . $name . ': ' . $app_route->{pattern});
+            $self->log->trace('updating database page ' . $name . ': ' . $app_route->{pattern});
             $self->model->backend->set(pages => $name => $app_route);
         }
         else {
-            $self->log->debug('creating database page ' . $name . ': ' . $app_route->{pattern});
+            $self->log->trace('creating database page ' . $name . ': ' . $app_route->{pattern});
             $self->model->backend->create(pages => $app_route);
         }
     }
     # Remaining database routes should be deleted
     for my $page ( values %db_routes ) {
-      $self->log->debug('deleting database page ' . $page->{name} . ': ' . $page->{pattern});
+      $self->log->trace('deleting database page ' . $page->{name} . ': ' . $page->{pattern});
       $self->model->backend->delete( pages => $page->{name} );
     }
 }
@@ -136,7 +136,7 @@ sub _walk_route($self, $parent, $prefix='') {
       next;
     }
     my $pattern = $prefix . ($r->pattern->unparsed // '/');
-    $self->log->debug('got pattern for route ' . $pattern . ' ' . $r->name);
+    $self->log->trace('got pattern for route ' . $pattern . ' ' . $r->name);
     if ($r->is_endpoint && !$r->is_websocket) {
         my %params = $r->pattern->defaults->%*;
         delete $params{$_} for qw( cb ); # Delete things that aren't params
